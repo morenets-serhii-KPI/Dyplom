@@ -1,1 +1,1 @@
-# my project for diploma
+# ДИПЛОМ
