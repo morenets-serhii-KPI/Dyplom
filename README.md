@@ -1,1 +1,1 @@
-# my project for dyploma
+# my project for diploma
