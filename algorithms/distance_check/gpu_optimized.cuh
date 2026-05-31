@@ -6,6 +6,7 @@
 #include <thrust/device_ptr.h>
 #include <vector>
 #include <algorithm>
+#include <cstdio>
 
 // Вирівнювання для Memory Coalescing
 struct alignas(16) GpuBox {
@@ -20,11 +21,11 @@ struct GpuBoxComparator {
 };
 
 __global__ void distanceKernelOptimized(
-    const GpuBox* __restrict__ boxes, // __restrict__ допомагає використовувати Read-Only Cache
+    const GpuBox* __restrict__ boxes,
     int count,
     float minDistance,
-    float minDistSq, // Передаємо квадрат заздалегідь
-    int* violations
+    float minDistSq,
+    unsigned int* violations
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= count) return;
@@ -51,52 +52,83 @@ __global__ void distanceKernelOptimized(
     }
 
     if (found > 0) {
-        atomicAdd(violations, found);
+        atomicAdd(violations, (unsigned int)found);
     }
 }
 
 int runGpuOptimizedDistanceCheck(const Layout& layout, float minDistance) {
-    int count = static_cast<int>(layout.polygons.size());
-    if (count == 0) return 0;
+    int n = static_cast<int>(layout.polygons.size());
+    if (n == 0) return 0;
 
-    // Обчислення BBox на CPU
-    std::vector<GpuBox> hostBoxes(count);
-    for (int i = 0; i < count; i++) {
+    // Компактний масив — порожні полігони пропускаємо,
+    // щоб не відправляти сміттєві дані на GPU
+    std::vector<GpuBox> hostBoxes;
+    hostBoxes.reserve(n);
+    for (int i = 0; i < n; i++) {
         const auto& poly = layout.polygons[i];
         if (poly.vertices.empty()) continue;
         float x1 = poly.vertices[0].x, x2 = x1;
         float y1 = poly.vertices[0].y, y2 = y1;
         for (const auto& v : poly.vertices) {
-            x1 = std::min(x1, (float)v.x); x2 = std::max(x2, (float)v.x);
-            y1 = std::min(y1, (float)v.y); y2 = std::max(y2, (float)v.y);
+            x1 = std::min(x1, v.x); x2 = std::max(x2, v.x);
+            y1 = std::min(y1, v.y); y2 = std::max(y2, v.y);
         }
-        hostBoxes[i] = {x1, y1, x2, y2, poly.layer};
+        hostBoxes.push_back({x1, y1, x2, y2, poly.layer});
+    }
+    int count = static_cast<int>(hostBoxes.size());
+    if (count == 0) return 0;
+
+    // Запитуємо пристрій для оптимального розміру блоку
+    int deviceId;
+    cudaGetDevice(&deviceId);
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, deviceId);
+    int threads = std::min(prop.maxThreadsPerBlock, 256);
+    int blocks = (count + threads - 1) / threads;
+
+    GpuBox*       d_boxes      = nullptr;
+    unsigned int* d_violations = nullptr;
+
+    if (cudaMalloc(&d_boxes, count * sizeof(GpuBox)) != cudaSuccess) {
+        fprintf(stderr, "[gpu_optimized distance] cudaMalloc d_boxes failed\n");
+        return -1;
+    }
+    if (cudaMalloc(&d_violations, sizeof(unsigned int)) != cudaSuccess) {
+        fprintf(stderr, "[gpu_optimized distance] cudaMalloc d_violations failed\n");
+        cudaFree(d_boxes);
+        return -1;
     }
 
-    GpuBox* d_boxes;
-    int* d_violations;
-    cudaMalloc(&d_boxes, count * sizeof(GpuBox));
-    cudaMalloc(&d_violations, sizeof(int));
-
     cudaMemcpy(d_boxes, hostBoxes.data(), count * sizeof(GpuBox), cudaMemcpyHostToDevice);
-    cudaMemset(d_violations, 0, sizeof(int));
+    cudaMemset(d_violations, 0, sizeof(unsigned int));
 
     // Сортування на GPU через Thrust
     thrust::device_ptr<GpuBox> ptr(d_boxes);
     thrust::sort(ptr, ptr + count, GpuBoxComparator());
 
-    int threads = 256;
-    int blocks = (count + threads - 1) / threads;
-
     distanceKernelOptimized<<<blocks, threads>>>(
         d_boxes, count, minDistance, minDistance * minDistance, d_violations
     );
 
-    int result = 0;
-    cudaMemcpy(&result, d_violations, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        fprintf(stderr, "[gpu_optimized distance] kernel launch error: %s\n", cudaGetErrorString(err));
+        cudaFree(d_boxes); cudaFree(d_violations);
+        return -1;
+    }
+    err = cudaDeviceSynchronize();
+    if (err != cudaSuccess) {
+        fprintf(stderr, "[gpu_optimized distance] kernel sync error: %s\n", cudaGetErrorString(err));
+        cudaFree(d_boxes); cudaFree(d_violations);
+        return -1;
+    }
+
+    unsigned int rawResult = 0;
+    cudaMemcpy(&rawResult, d_violations, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
     cudaFree(d_boxes);
     cudaFree(d_violations);
 
-    return result;
+    // Обрізаємо до INT_MAX щоб уникнути знакового переповнення при поверненні
+    return (rawResult <= (unsigned int)INT_MAX) ? (int)rawResult : INT_MAX;
 }

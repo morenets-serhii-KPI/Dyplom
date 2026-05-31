@@ -3,17 +3,18 @@
 #include "../../topology/topology.h"
 #include <cuda_runtime.h>
 #include <thrust/sort.h>
+#include <thrust/scan.h>
 #include <thrust/device_ptr.h>
 #include <vector>
 #include <algorithm>
+#include <climits>
+#include <cstdio>
 
-// Структура для GPU з вирівнюванням для кращого доступу до пам'яті
 struct GpuClipBox {
     float minX, minY, maxX, maxY;
     int layer;
 };
 
-// Компаратор для Thrust
 struct BoxComparator {
     __host__ __device__
     bool operator()(const GpuClipBox& a, const GpuClipBox& b) const {
@@ -22,91 +23,166 @@ struct BoxComparator {
     }
 };
 
+// Прохід 1: рахуємо кількість перетинів для кожного потоку
 __global__
-void clippingKernelOptimized(const GpuClipBox* boxes, int count, GpuClipBox* results, int* resultCount, int maxResults) {
+void countIntersectionsKernel(const GpuClipBox* boxes, int count, int* perThreadCount) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= count) return;
-
     GpuClipBox a = boxes[i];
-
-    // Sweep-line logic: перевіряємо лише наступні бокси, поки вони не вийдуть за межу maxX
+    int cnt = 0;
     for (int j = i + 1; j < count; j++) {
         GpuClipBox b = boxes[j];
-
-        // Ранній вихід: якщо наступний бокс починається правіше, ніж закінчується поточний
         if (b.minX > a.maxX) break;
+        if (a.layer == b.layer &&
+            a.minX < b.maxX && a.maxX > b.minX &&
+            a.minY < b.maxY && a.maxY > b.minY) {
+            cnt++;
+        }
+    }
+    perThreadCount[i] = cnt;
+}
 
-        if (a.layer == b.layer) {
-            // Перевірка перекриття
-            if (a.minX < b.maxX && a.maxX > b.minX && a.minY < b.maxY && a.maxY > b.minY) {
-                int outIdx = atomicAdd(resultCount, 1);
-                if (outIdx < maxResults) {
-                    GpuClipBox clipped;
-                    clipped.minX = fmaxf(a.minX, b.minX);
-                    clipped.minY = fmaxf(a.minY, b.minY);
-                    clipped.maxX = fminf(a.maxX, b.maxX);
-                    clipped.maxY = fminf(a.maxY, b.maxY);
-                    clipped.layer = a.layer;
-                    results[outIdx] = clipped;
-                }
+// Прохід 2: записуємо результати за заздалегідь відомими зміщеннями (без atomicAdd)
+__global__
+void writeIntersectionsKernel(const GpuClipBox* boxes, int count,
+                               const int* offsets, GpuClipBox* results, int maxResults) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= count) return;
+    GpuClipBox a = boxes[i];
+    int outIdx = offsets[i];
+    for (int j = i + 1; j < count; j++) {
+        GpuClipBox b = boxes[j];
+        if (b.minX > a.maxX) break;
+        if (a.layer == b.layer &&
+            a.minX < b.maxX && a.maxX > b.minX &&
+            a.minY < b.maxY && a.maxY > b.minY) {
+            if (outIdx < maxResults) {
+                GpuClipBox clipped;
+                clipped.minX = fmaxf(a.minX, b.minX);
+                clipped.minY = fmaxf(a.minY, b.minY);
+                clipped.maxX = fminf(a.maxX, b.maxX);
+                clipped.maxY = fminf(a.maxY, b.maxY);
+                clipped.layer = a.layer;
+                results[outIdx] = clipped;
             }
+            outIdx++;
         }
     }
 }
 
-inline Layout runGpuOptimizedPolygonClipping(const Layout& layout) {
-    int count = static_cast<int>(layout.polygons.size());
-    if (count == 0) return Layout();
+static bool gpuClipCheck(cudaError_t err, const char* msg) {
+    if (err != cudaSuccess) {
+        fprintf(stderr, "[gpu_optimized clipping] %s: %s\n", msg, cudaGetErrorString(err));
+        return false;
+    }
+    return true;
+}
 
-    // 1. Підготовка боксів на Host
-    std::vector<GpuClipBox> hostBoxes(count);
-    for (int i = 0; i < count; i++) {
+inline Layout runGpuOptimizedPolygonClipping(const Layout& layout) {
+    int n = static_cast<int>(layout.polygons.size());
+    if (n == 0) return Layout();
+
+    std::vector<GpuClipBox> hostBoxes;
+    hostBoxes.reserve(n);
+    for (int i = 0; i < n; i++) {
         const auto& poly = layout.polygons[i];
+        if (poly.vertices.empty()) continue;
         float x1 = poly.vertices[0].x, y1 = poly.vertices[0].y;
         float x2 = x1, y2 = y1;
         for (const auto& v : poly.vertices) {
             x1 = std::min(x1, v.x); y1 = std::min(y1, v.y);
             x2 = std::max(x2, v.x); y2 = std::max(y2, v.y);
         }
-        hostBoxes[i] = {x1, y1, x2, y2, poly.layer};
+        hostBoxes.push_back({x1, y1, x2, y2, poly.layer});
+    }
+    int count = static_cast<int>(hostBoxes.size());
+    if (count == 0) return Layout();
+
+    int deviceId = 0;
+    cudaGetDevice(&deviceId);
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, deviceId);
+    int threads = std::min(prop.maxThreadsPerBlock, 256);
+    int blocks  = (count + threads - 1) / threads;
+
+    GpuClipBox *d_boxes = nullptr, *d_results = nullptr;
+    int *d_perThreadCount = nullptr, *d_offsets = nullptr;
+
+    auto cleanup = [&]() {
+        if (d_boxes)          cudaFree(d_boxes);
+        if (d_perThreadCount) cudaFree(d_perThreadCount);
+        if (d_offsets)        cudaFree(d_offsets);
+        if (d_results)        cudaFree(d_results);
+    };
+
+    if (!gpuClipCheck(cudaMalloc(&d_boxes,          count * sizeof(GpuClipBox)), "malloc d_boxes")    ||
+        !gpuClipCheck(cudaMalloc(&d_perThreadCount, count * sizeof(int)),        "malloc perThreadCount") ||
+        !gpuClipCheck(cudaMalloc(&d_offsets,        count * sizeof(int)),        "malloc offsets")) {
+        cleanup();
+        return Layout();
     }
 
-    // 2. Виділення пам'яті
-    GpuClipBox *d_boxes, *d_results;
-    int *d_resultCount;
-    int maxResults = std::min<int>(count * 10, 2000000); // Ліміт, щоб не переповнити VRAM
-
-    cudaMalloc(&d_boxes, count * sizeof(GpuClipBox));
-    cudaMalloc(&d_results, maxResults * sizeof(GpuClipBox));
-    cudaMalloc(&d_resultCount, sizeof(int));
-
     cudaMemcpy(d_boxes, hostBoxes.data(), count * sizeof(GpuClipBox), cudaMemcpyHostToDevice);
-    cudaMemset(d_resultCount, 0, sizeof(int));
 
-    // 3. Сортування Thrust (виконується на GPU)
+    // Сортування по minX для sweep-line
     thrust::device_ptr<GpuClipBox> ptr(d_boxes);
     thrust::sort(ptr, ptr + count, BoxComparator());
 
-    // 4. Запуск оптимізованого кернела
-    int threads = 256;
-    int blocks = (count + threads - 1) / threads;
-    clippingKernelOptimized<<<blocks, threads>>>(d_boxes, count, d_results, d_resultCount, maxResults);
-    
-    cudaDeviceSynchronize();
-
-    // 5. Копіювання результатів назад
-    int finalCount = 0;
-    cudaMemcpy(&finalCount, d_resultCount, sizeof(int), cudaMemcpyDeviceToHost);
-    int actualCopy = std::min(finalCount, maxResults);
-
-    std::vector<GpuClipBox> hostResults(actualCopy);
-    if (actualCopy > 0) {
-        cudaMemcpy(hostResults.data(), d_results, actualCopy * sizeof(GpuClipBox), cudaMemcpyDeviceToHost);
+    // --- Прохід 1: рахуємо перетини ---
+    countIntersectionsKernel<<<blocks, threads>>>(d_boxes, count, d_perThreadCount);
+    if (!gpuClipCheck(cudaGetLastError(),       "countKernel launch") ||
+        !gpuClipCheck(cudaDeviceSynchronize(),  "countKernel sync")) {
+        cleanup();
+        return Layout();
     }
 
-    // 6. Формування вихідного Layout
+    // Prefix sum (exclusive scan) → зміщення для кожного потоку
+    {
+        thrust::device_ptr<int> pCount(d_perThreadCount);
+        thrust::device_ptr<int> pOffsets(d_offsets);
+        thrust::exclusive_scan(pCount, pCount + count, pOffsets);
+    }
+
+    // Точна загальна кількість результатів
+    int lastCount = 0, lastOffset = 0;
+    cudaMemcpy(&lastCount,  d_perThreadCount + count - 1, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&lastOffset, d_offsets        + count - 1, sizeof(int), cudaMemcpyDeviceToHost);
+    long long totalResults = (long long)lastOffset + lastCount;
+
+    // Ліміт по вільній VRAM (80%) та по діапазону int (для індексів)
+    size_t freeMem = 0, totalMem = 0;
+    cudaMemGetInfo(&freeMem, &totalMem);
+    long long maxByVram = (long long)(freeMem * 0.8) / (long long)sizeof(GpuClipBox);
+    long long maxByInt  = (long long)INT_MAX;
+    int maxResults = (int)std::min({totalResults, maxByVram, maxByInt});
+
+    if (totalResults > (long long)maxResults) {
+        fprintf(stderr, "[gpu_optimized clipping] warning: %lld intersections found, capped at %d (VRAM limit)\n",
+                totalResults, maxResults);
+    }
+    if (maxResults == 0) {
+        cleanup();
+        return Layout();
+    }
+
+    if (!gpuClipCheck(cudaMalloc(&d_results, (size_t)maxResults * sizeof(GpuClipBox)), "malloc d_results")) {
+        cleanup();
+        return Layout();
+    }
+
+    // --- Прохід 2: записуємо результати без atomicAdd ---
+    writeIntersectionsKernel<<<blocks, threads>>>(d_boxes, count, d_offsets, d_results, maxResults);
+    if (!gpuClipCheck(cudaGetLastError(),      "writeKernel launch") ||
+        !gpuClipCheck(cudaDeviceSynchronize(), "writeKernel sync")) {
+        cleanup();
+        return Layout();
+    }
+
+    std::vector<GpuClipBox> hostResults((size_t)maxResults);
+    cudaMemcpy(hostResults.data(), d_results, (size_t)maxResults * sizeof(GpuClipBox), cudaMemcpyDeviceToHost);
+
     Layout result;
-    result.polygons.reserve(actualCopy);
+    result.polygons.reserve((size_t)maxResults);
     for (const auto& r : hostResults) {
         GdsPolygon p;
         p.layer = r.layer;
@@ -114,6 +190,6 @@ inline Layout runGpuOptimizedPolygonClipping(const Layout& layout) {
         result.polygons.push_back(std::move(p));
     }
 
-    cudaFree(d_boxes); cudaFree(d_results); cudaFree(d_resultCount);
+    cleanup();
     return result;
 }

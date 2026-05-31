@@ -1,0 +1,145 @@
+operation,density_id,density_name,n,algorithm,time_ms,result,status,speedup_vs_naive
+DistanceCheck;LOW;Низька;1000;CPU Naive;12;3;OK;1.00
+DistanceCheck;LOW;Низька;1000;CPU Sweep-line;0;3;OK;0.00
+DistanceCheck;LOW;Низька;1000;CPU Parallel (OMP);4;3;OK;3.00
+DistanceCheck;LOW;Низька;1000;CPU Opt.Parallel;0;3;OK;0.00
+DistanceCheck;LOW;Низька;1000;GPU Brute-force;0;3;OK;0.00
+DistanceCheck;LOW;Низька;1000;GPU Optimized;0;3;OK;0.00
+PolygonClipping;LOW;Низька;1000;CPU Naive;4;2;OK;1.00
+PolygonClipping;LOW;Низька;1000;CPU Sweep-line;1;2;OK;4.00
+PolygonClipping;LOW;Низька;1000;CPU Parallel (OMP);0;2;OK;0.00
+PolygonClipping;LOW;Низька;1000;CPU Opt.Parallel;0;2;OK;0.00
+PolygonClipping;LOW;Низька;1000;GPU Brute-force;1;2;OK;4.00
+PolygonClipping;LOW;Низька;1000;GPU Optimized;0;2;OK;0.00
+DistanceCheck;LOW;Низька;3000;CPU Naive;113;30;OK;1.00
+DistanceCheck;LOW;Низька;3000;CPU Sweep-line;2;30;OK;56.50
+DistanceCheck;LOW;Низька;3000;CPU Parallel (OMP);38;30;OK;2.97
+DistanceCheck;LOW;Низька;3000;CPU Opt.Parallel;1;30;OK;113.00
+DistanceCheck;LOW;Низька;3000;GPU Brute-force;1;30;OK;113.00
+DistanceCheck;LOW;Низька;3000;GPU Optimized;0;30;OK;0.00
+PolygonClipping;LOW;Низька;3000;CPU Naive;40;22;OK;1.00
+PolygonClipping;LOW;Низька;3000;CPU Sweep-line;3;22;OK;13.33
+PolygonClipping;LOW;Низька;3000;CPU Parallel (OMP);5;22;OK;8.00
+PolygonClipping;LOW;Низька;3000;CPU Opt.Parallel;1;22;OK;40.00
+PolygonClipping;LOW;Низька;3000;GPU Brute-force;4;22;OK;10.00
+PolygonClipping;LOW;Низька;3000;GPU Optimized;0;22;OK;0.00
+DistanceCheck;LOW;Низька;5000;CPU Naive;326;77;OK;1.00
+DistanceCheck;LOW;Низька;5000;CPU Sweep-line;4;77;OK;81.50
+DistanceCheck;LOW;Низька;5000;CPU Parallel (OMP);106;77;OK;3.08
+DistanceCheck;LOW;Низька;5000;CPU Opt.Parallel;2;77;OK;163.00
+DistanceCheck;LOW;Низька;5000;GPU Brute-force;1;77;OK;326.00
+DistanceCheck;LOW;Низька;5000;GPU Optimized;0;77;OK;0.00
+PolygonClipping;LOW;Низька;5000;CPU Naive;111;50;OK;1.00
+PolygonClipping;LOW;Низька;5000;CPU Sweep-line;6;50;OK;18.50
+PolygonClipping;LOW;Низька;5000;CPU Parallel (OMP);16;50;OK;6.94
+PolygonClipping;LOW;Низька;5000;CPU Opt.Parallel;1;50;OK;111.00
+PolygonClipping;LOW;Низька;5000;GPU Brute-force;12;50;OK;9.25
+PolygonClipping;LOW;Низька;5000;GPU Optimized;1;50;OK;111.00
+DistanceCheck;LOW;Низька;10000;CPU Naive;1294;311;OK;1.00
+DistanceCheck;LOW;Низька;10000;CPU Sweep-line;11;311;OK;117.64
+DistanceCheck;LOW;Низька;10000;CPU Parallel (OMP);396;311;OK;3.27
+DistanceCheck;LOW;Низька;10000;CPU Opt.Parallel;5;311;OK;258.80
+DistanceCheck;LOW;Низька;10000;GPU Brute-force;32;311;OK;40.44
+DistanceCheck;LOW;Низька;10000;GPU Optimized;3;311;OK;431.33
+PolygonClipping;LOW;Низька;10000;CPU Naive;452;212;OK;1.00
+PolygonClipping;LOW;Низька;10000;CPU Sweep-line;19;212;OK;23.79
+PolygonClipping;LOW;Низька;10000;CPU Parallel (OMP);74;212;OK;6.11
+PolygonClipping;LOW;Низька;10000;CPU Opt.Parallel;4;212;OK;113.00
+PolygonClipping;LOW;Низька;10000;GPU Brute-force;41;212;OK;11.02
+PolygonClipping;LOW;Низька;10000;GPU Optimized;1;212;OK;452.00
+DistanceCheck;MEDIUM;Середня;1000;CPU Naive;13;76;OK;1.00
+DistanceCheck;MEDIUM;Середня;1000;CPU Sweep-line;0;76;OK;0.00
+DistanceCheck;MEDIUM;Середня;1000;CPU Parallel (OMP);4;76;OK;3.25
+DistanceCheck;MEDIUM;Середня;1000;CPU Opt.Parallel;0;76;OK;0.00
+DistanceCheck;MEDIUM;Середня;1000;GPU Brute-force;0;76;OK;0.00
+DistanceCheck;MEDIUM;Середня;1000;GPU Optimized;0;76;OK;0.00
+PolygonClipping;MEDIUM;Середня;1000;CPU Naive;5;47;OK;1.00
+PolygonClipping;MEDIUM;Середня;1000;CPU Sweep-line;1;47;OK;5.00
+PolygonClipping;MEDIUM;Середня;1000;CPU Parallel (OMP);0;47;OK;0.00
+PolygonClipping;MEDIUM;Середня;1000;CPU Opt.Parallel;0;47;OK;0.00
+PolygonClipping;MEDIUM;Середня;1000;GPU Brute-force;1;47;OK;5.00
+PolygonClipping;MEDIUM;Середня;1000;GPU Optimized;0;47;OK;0.00
+DistanceCheck;MEDIUM;Середня;3000;CPU Naive;127;676;OK;1.00
+DistanceCheck;MEDIUM;Середня;3000;CPU Sweep-line;3;676;OK;42.33
+DistanceCheck;MEDIUM;Середня;3000;CPU Parallel (OMP);38;676;OK;3.34
+DistanceCheck;MEDIUM;Середня;3000;CPU Opt.Parallel;1;676;OK;127.00
+DistanceCheck;MEDIUM;Середня;3000;GPU Brute-force;1;676;OK;127.00
+DistanceCheck;MEDIUM;Середня;3000;GPU Optimized;0;676;OK;0.00
+PolygonClipping;MEDIUM;Середня;3000;CPU Naive;40;426;OK;1.00
+PolygonClipping;MEDIUM;Середня;3000;CPU Sweep-line;5;426;OK;8.00
+PolygonClipping;MEDIUM;Середня;3000;CPU Parallel (OMP);5;426;OK;8.00
+PolygonClipping;MEDIUM;Середня;3000;CPU Opt.Parallel;1;426;OK;40.00
+PolygonClipping;MEDIUM;Середня;3000;GPU Brute-force;4;426;OK;10.00
+PolygonClipping;MEDIUM;Середня;3000;GPU Optimized;1;426;OK;40.00
+DistanceCheck;MEDIUM;Середня;5000;CPU Naive;327;1792;OK;1.00
+DistanceCheck;MEDIUM;Середня;5000;CPU Sweep-line;7;1792;OK;46.71
+DistanceCheck;MEDIUM;Середня;5000;CPU Parallel (OMP);106;1792;OK;3.08
+DistanceCheck;MEDIUM;Середня;5000;CPU Opt.Parallel;3;1792;OK;109.00
+DistanceCheck;MEDIUM;Середня;5000;GPU Brute-force;5;1792;OK;65.40
+DistanceCheck;MEDIUM;Середня;5000;GPU Optimized;2;1792;OK;163.50
+PolygonClipping;MEDIUM;Середня;5000;CPU Naive;113;1161;OK;1.00
+PolygonClipping;MEDIUM;Середня;5000;CPU Sweep-line;11;1161;OK;10.27
+PolygonClipping;MEDIUM;Середня;5000;CPU Parallel (OMP);16;1161;OK;7.06
+PolygonClipping;MEDIUM;Середня;5000;CPU Opt.Parallel;2;1161;OK;56.50
+PolygonClipping;MEDIUM;Середня;5000;GPU Brute-force;31;1161;OK;3.65
+PolygonClipping;MEDIUM;Середня;5000;GPU Optimized;1;1161;OK;113.00
+DistanceCheck;MEDIUM;Середня;10000;CPU Naive;1301;7232;OK;1.00
+DistanceCheck;MEDIUM;Середня;10000;CPU Sweep-line;23;7232;OK;56.57
+DistanceCheck;MEDIUM;Середня;10000;CPU Parallel (OMP);403;7232;OK;3.23
+DistanceCheck;MEDIUM;Середня;10000;CPU Opt.Parallel;8;7232;OK;162.62
+DistanceCheck;MEDIUM;Середня;10000;GPU Brute-force;32;7232;OK;40.66
+DistanceCheck;MEDIUM;Середня;10000;GPU Optimized;4;7232;OK;325.25
+PolygonClipping;MEDIUM;Середня;10000;CPU Naive;469;4769;OK;1.00
+PolygonClipping;MEDIUM;Середня;10000;CPU Sweep-line;29;4769;OK;16.17
+PolygonClipping;MEDIUM;Середня;10000;CPU Parallel (OMP);67;4769;OK;7.00
+PolygonClipping;MEDIUM;Середня;10000;CPU Opt.Parallel;5;4769;OK;93.80
+PolygonClipping;MEDIUM;Середня;10000;GPU Brute-force;40;4769;OK;11.72
+PolygonClipping;MEDIUM;Середня;10000;GPU Optimized;2;4769;OK;234.50
+DistanceCheck;HIGH;Висока;1000;CPU Naive;13;771;OK;1.00
+DistanceCheck;HIGH;Висока;1000;CPU Sweep-line;1;771;OK;13.00
+DistanceCheck;HIGH;Висока;1000;CPU Parallel (OMP);4;771;OK;3.25
+DistanceCheck;HIGH;Висока;1000;CPU Opt.Parallel;0;771;OK;0.00
+DistanceCheck;HIGH;Висока;1000;GPU Brute-force;0;771;OK;0.00
+DistanceCheck;HIGH;Висока;1000;GPU Optimized;0;771;OK;0.00
+PolygonClipping;HIGH;Висока;1000;CPU Naive;5;506;OK;1.00
+PolygonClipping;HIGH;Висока;1000;CPU Sweep-line;2;506;OK;2.50
+PolygonClipping;HIGH;Висока;1000;CPU Parallel (OMP);0;506;OK;0.00
+PolygonClipping;HIGH;Висока;1000;CPU Opt.Parallel;0;506;OK;0.00
+PolygonClipping;HIGH;Висока;1000;GPU Brute-force;1;506;OK;5.00
+PolygonClipping;HIGH;Висока;1000;GPU Optimized;0;506;OK;0.00
+DistanceCheck;HIGH;Висока;3000;CPU Naive;117;7028;OK;1.00
+DistanceCheck;HIGH;Висока;3000;CPU Sweep-line;6;7028;OK;19.50
+DistanceCheck;HIGH;Висока;3000;CPU Parallel (OMP);38;7028;OK;3.08
+DistanceCheck;HIGH;Висока;3000;CPU Opt.Parallel;2;7028;OK;58.50
+DistanceCheck;HIGH;Висока;3000;GPU Brute-force;0;7028;OK;0.00
+DistanceCheck;HIGH;Висока;3000;GPU Optimized;0;7028;OK;0.00
+PolygonClipping;HIGH;Висока;3000;CPU Naive;43;4615;OK;1.00
+PolygonClipping;HIGH;Висока;3000;CPU Sweep-line;9;4615;OK;4.78
+PolygonClipping;HIGH;Висока;3000;CPU Parallel (OMP);7;4615;OK;6.14
+PolygonClipping;HIGH;Висока;3000;CPU Opt.Parallel;2;4615;OK;21.50
+PolygonClipping;HIGH;Висока;3000;GPU Brute-force;5;4615;OK;8.60
+PolygonClipping;HIGH;Висока;3000;GPU Optimized;2;4615;OK;21.50
+DistanceCheck;HIGH;Висока;5000;CPU Naive;327;19600;OK;1.00
+DistanceCheck;HIGH;Висока;5000;CPU Sweep-line;16;19600;OK;20.44
+DistanceCheck;HIGH;Висока;5000;CPU Parallel (OMP);108;19600;OK;3.03
+DistanceCheck;HIGH;Висока;5000;CPU Opt.Parallel;5;19600;OK;65.40
+DistanceCheck;HIGH;Висока;5000;GPU Brute-force;5;19600;OK;65.40
+DistanceCheck;HIGH;Висока;5000;GPU Optimized;2;19600;OK;163.50
+PolygonClipping;HIGH;Висока;5000;CPU Naive;118;12928;OK;1.00
+PolygonClipping;HIGH;Висока;5000;CPU Sweep-line;21;12928;OK;5.62
+PolygonClipping;HIGH;Висока;5000;CPU Parallel (OMP);20;12928;OK;5.90
+PolygonClipping;HIGH;Висока;5000;CPU Opt.Parallel;5;12928;OK;23.60
+PolygonClipping;HIGH;Висока;5000;GPU Brute-force;53;12928;OK;2.23
+PolygonClipping;HIGH;Висока;5000;GPU Optimized;4;12928;OK;29.50
+DistanceCheck;HIGH;Висока;10000;CPU Naive;1308;77840;OK;1.00
+DistanceCheck;HIGH;Висока;10000;CPU Sweep-line;59;77840;OK;22.17
+DistanceCheck;HIGH;Висока;10000;CPU Parallel (OMP);403;77840;OK;3.25
+DistanceCheck;HIGH;Висока;10000;CPU Opt.Parallel;19;77840;OK;68.84
+DistanceCheck;HIGH;Висока;10000;GPU Brute-force;32;77840;OK;40.88
+DistanceCheck;HIGH;Висока;10000;GPU Optimized;6;77840;OK;218.00
+PolygonClipping;HIGH;Висока;10000;CPU Naive;480;51615;OK;1.00
+PolygonClipping;HIGH;Висока;10000;CPU Sweep-line;74;51615;OK;6.49
+PolygonClipping;HIGH;Висока;10000;CPU Parallel (OMP);79;51615;OK;6.08
+PolygonClipping;HIGH;Висока;10000;CPU Opt.Parallel;18;51615;OK;26.67
+PolygonClipping;HIGH;Висока;10000;GPU Brute-force;48;51615;OK;10.00
+PolygonClipping;HIGH;Висока;10000;GPU Optimized;10;51615;OK;48.00
