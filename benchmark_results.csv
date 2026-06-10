@@ -1,0 +1,123 @@
+# HARDWARE INFO
+# GPU,NVIDIA GeForce MX450
+# CUDA_cores,896
+# SM_count,14
+# Compute_CC,7.5
+# GPU_memory_MB,2047
+# Memory_type,GDDR5/GDDR6
+# CPU,Unknown
+# CPU_cores,0
+# CPU_threads,0
+# CPU_max_MHz,0
+# OMP_threads,8
+# Platform,Windows
+#
+operation,density_id,density_label,n,algo_id,algo_label,time_us,result,status,speedup_vs_naive
+DistanceCheck,LOW,Low    (50k x 50k),5000,CPU_Naive,CPU Naive,81258,77,OK,1.00
+DistanceCheck,LOW,Low    (50k x 50k),5000,CPU_Sweepline,CPU Sweep-line,1039,77,OK,78.21
+DistanceCheck,LOW,Low    (50k x 50k),5000,CPU_Parallel_OMP,CPU Parallel (OMP),25728,77,OK,3.16
+DistanceCheck,LOW,Low    (50k x 50k),5000,CPU_Opt_Parallel,CPU Opt.Parallel,753,77,OK,107.91
+DistanceCheck,LOW,Low    (50k x 50k),5000,GPU_BruteForce,GPU Brute-force,1443,77,OK,56.31
+DistanceCheck,LOW,Low    (50k x 50k),5000,GPU_Optimized,GPU Optimized,607,77,OK,133.87
+PolygonClipping,LOW,Low    (50k x 50k),5000,CPU_Naive,CPU Naive,42,50,OK,1.00
+PolygonClipping,LOW,Low    (50k x 50k),5000,CPU_Sweepline,CPU Sweep-line,1,50,OK,42.00
+PolygonClipping,LOW,Low    (50k x 50k),5000,CPU_Parallel_OMP,CPU Parallel (OMP),7,50,OK,6.00
+PolygonClipping,LOW,Low    (50k x 50k),5000,CPU_Opt_Parallel,CPU Opt.Parallel,0,50,OK,0.00
+PolygonClipping,LOW,Low    (50k x 50k),5000,GPU_BruteForce,GPU Brute-force,12,50,OK,3.50
+PolygonClipping,LOW,Low    (50k x 50k),5000,GPU_Optimized,GPU Optimized,0,50,OK,0.00
+DistanceCheck,LOW,Low    (50k x 50k),10000,CPU_Naive,CPU Naive,336600,311,OK,1.00
+DistanceCheck,LOW,Low    (50k x 50k),10000,CPU_Sweepline,CPU Sweep-line,2517,311,OK,133.73
+DistanceCheck,LOW,Low    (50k x 50k),10000,CPU_Parallel_OMP,CPU Parallel (OMP),104689,311,OK,3.22
+DistanceCheck,LOW,Low    (50k x 50k),10000,CPU_Opt_Parallel,CPU Opt.Parallel,2000,311,OK,168.30
+DistanceCheck,LOW,Low    (50k x 50k),10000,GPU_BruteForce,GPU Brute-force,4258,311,OK,79.05
+DistanceCheck,LOW,Low    (50k x 50k),10000,GPU_Optimized,GPU Optimized,1028,311,OK,327.43
+PolygonClipping,LOW,Low    (50k x 50k),10000,CPU_Naive,CPU Naive,175,212,OK,1.00
+PolygonClipping,LOW,Low    (50k x 50k),10000,CPU_Sweepline,CPU Sweep-line,4,212,OK,43.75
+PolygonClipping,LOW,Low    (50k x 50k),10000,CPU_Parallel_OMP,CPU Parallel (OMP),29,212,OK,6.03
+PolygonClipping,LOW,Low    (50k x 50k),10000,CPU_Opt_Parallel,CPU Opt.Parallel,0,212,OK,0.00
+PolygonClipping,LOW,Low    (50k x 50k),10000,GPU_BruteForce,GPU Brute-force,41,212,OK,4.27
+PolygonClipping,LOW,Low    (50k x 50k),10000,GPU_Optimized,GPU Optimized,0,212,OK,0.00
+DistanceCheck,LOW,Low    (50k x 50k),20000,CPU_Naive,CPU Naive,1256301,1174,OK,1.00
+DistanceCheck,LOW,Low    (50k x 50k),20000,CPU_Sweepline,CPU Sweep-line,7687,1174,OK,163.43
+DistanceCheck,LOW,Low    (50k x 50k),20000,CPU_Parallel_OMP,CPU Parallel (OMP),439664,1174,OK,2.86
+DistanceCheck,LOW,Low    (50k x 50k),20000,CPU_Opt_Parallel,CPU Opt.Parallel,4879,1174,OK,257.49
+DistanceCheck,LOW,Low    (50k x 50k),20000,GPU_BruteForce,GPU Brute-force,15111,1174,OK,83.14
+DistanceCheck,LOW,Low    (50k x 50k),20000,GPU_Optimized,GPU Optimized,1218,1174,OK,1031.45
+PolygonClipping,LOW,Low    (50k x 50k),20000,CPU_Naive,CPU Naive,740,786,OK,1.00
+PolygonClipping,LOW,Low    (50k x 50k),20000,CPU_Sweepline,CPU Sweep-line,13,786,OK,56.92
+PolygonClipping,LOW,Low    (50k x 50k),20000,CPU_Parallel_OMP,CPU Parallel (OMP),128,786,OK,5.78
+PolygonClipping,LOW,Low    (50k x 50k),20000,CPU_Opt_Parallel,CPU Opt.Parallel,1,786,OK,740.00
+PolygonClipping,LOW,Low    (50k x 50k),20000,GPU_BruteForce,GPU Brute-force,69,786,OK,10.72
+PolygonClipping,LOW,Low    (50k x 50k),20000,GPU_Optimized,GPU Optimized,1,786,OK,740.00
+DistanceCheck,MEDIUM,Medium (10k x 10k),5000,CPU_Naive,CPU Naive,82419,1792,OK,1.00
+DistanceCheck,MEDIUM,Medium (10k x 10k),5000,CPU_Sweepline,CPU Sweep-line,2009,1792,OK,41.02
+DistanceCheck,MEDIUM,Medium (10k x 10k),5000,CPU_Parallel_OMP,CPU Parallel (OMP),25935,1792,OK,3.18
+DistanceCheck,MEDIUM,Medium (10k x 10k),5000,CPU_Opt_Parallel,CPU Opt.Parallel,1231,1792,OK,66.95
+DistanceCheck,MEDIUM,Medium (10k x 10k),5000,GPU_BruteForce,GPU Brute-force,1205,1792,OK,68.40
+DistanceCheck,MEDIUM,Medium (10k x 10k),5000,GPU_Optimized,GPU Optimized,749,1792,OK,110.04
+PolygonClipping,MEDIUM,Medium (10k x 10k),5000,CPU_Naive,CPU Naive,48,1161,OK,1.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),5000,CPU_Sweepline,CPU Sweep-line,3,1161,OK,16.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),5000,CPU_Parallel_OMP,CPU Parallel (OMP),8,1161,OK,6.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),5000,CPU_Opt_Parallel,CPU Opt.Parallel,0,1161,OK,0.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),5000,GPU_BruteForce,GPU Brute-force,10,1161,OK,4.80
+PolygonClipping,MEDIUM,Medium (10k x 10k),5000,GPU_Optimized,GPU Optimized,0,1161,OK,0.00
+DistanceCheck,MEDIUM,Medium (10k x 10k),10000,CPU_Naive,CPU Naive,334781,7232,OK,1.00
+DistanceCheck,MEDIUM,Medium (10k x 10k),10000,CPU_Sweepline,CPU Sweep-line,6284,7232,OK,53.28
+DistanceCheck,MEDIUM,Medium (10k x 10k),10000,CPU_Parallel_OMP,CPU Parallel (OMP),105194,7232,OK,3.18
+DistanceCheck,MEDIUM,Medium (10k x 10k),10000,CPU_Opt_Parallel,CPU Opt.Parallel,2992,7232,OK,111.89
+DistanceCheck,MEDIUM,Medium (10k x 10k),10000,GPU_BruteForce,GPU Brute-force,15025,7232,OK,22.28
+DistanceCheck,MEDIUM,Medium (10k x 10k),10000,GPU_Optimized,GPU Optimized,3086,7232,OK,108.48
+PolygonClipping,MEDIUM,Medium (10k x 10k),10000,CPU_Naive,CPU Naive,180,4769,OK,1.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),10000,CPU_Sweepline,CPU Sweep-line,10,4769,OK,18.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),10000,CPU_Parallel_OMP,CPU Parallel (OMP),31,4769,OK,5.81
+PolygonClipping,MEDIUM,Medium (10k x 10k),10000,CPU_Opt_Parallel,CPU Opt.Parallel,1,4769,OK,180.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),10000,GPU_BruteForce,GPU Brute-force,41,4769,OK,4.39
+PolygonClipping,MEDIUM,Medium (10k x 10k),10000,GPU_Optimized,GPU Optimized,1,4769,OK,180.00
+DistanceCheck,MEDIUM,Medium (10k x 10k),20000,CPU_Naive,CPU Naive,1339113,28834,OK,1.00
+DistanceCheck,MEDIUM,Medium (10k x 10k),20000,CPU_Sweepline,CPU Sweep-line,23852,28834,OK,56.14
+DistanceCheck,MEDIUM,Medium (10k x 10k),20000,CPU_Parallel_OMP,CPU Parallel (OMP),427111,28834,OK,3.14
+DistanceCheck,MEDIUM,Medium (10k x 10k),20000,CPU_Opt_Parallel,CPU Opt.Parallel,7412,28834,OK,180.67
+DistanceCheck,MEDIUM,Medium (10k x 10k),20000,GPU_BruteForce,GPU Brute-force,54864,28834,OK,24.41
+DistanceCheck,MEDIUM,Medium (10k x 10k),20000,GPU_Optimized,GPU Optimized,1564,28834,OK,856.21
+PolygonClipping,MEDIUM,Medium (10k x 10k),20000,CPU_Naive,CPU Naive,752,18958,OK,1.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),20000,CPU_Sweepline,CPU Sweep-line,34,18958,OK,22.12
+PolygonClipping,MEDIUM,Medium (10k x 10k),20000,CPU_Parallel_OMP,CPU Parallel (OMP),128,18958,OK,5.88
+PolygonClipping,MEDIUM,Medium (10k x 10k),20000,CPU_Opt_Parallel,CPU Opt.Parallel,4,18958,OK,188.00
+PolygonClipping,MEDIUM,Medium (10k x 10k),20000,GPU_BruteForce,GPU Brute-force,70,18958,OK,10.74
+PolygonClipping,MEDIUM,Medium (10k x 10k),20000,GPU_Optimized,GPU Optimized,2,18958,OK,376.00
+DistanceCheck,HIGH,High   ( 3k x  3k),5000,CPU_Naive,CPU Naive,83423,19600,OK,1.00
+DistanceCheck,HIGH,High   ( 3k x  3k),5000,CPU_Sweepline,CPU Sweep-line,4688,19600,OK,17.80
+DistanceCheck,HIGH,High   ( 3k x  3k),5000,CPU_Parallel_OMP,CPU Parallel (OMP),26928,19600,OK,3.10
+DistanceCheck,HIGH,High   ( 3k x  3k),5000,CPU_Opt_Parallel,CPU Opt.Parallel,1725,19600,OK,48.36
+DistanceCheck,HIGH,High   ( 3k x  3k),5000,GPU_BruteForce,GPU Brute-force,1214,19600,OK,68.72
+DistanceCheck,HIGH,High   ( 3k x  3k),5000,GPU_Optimized,GPU Optimized,738,19600,OK,113.04
+PolygonClipping,HIGH,High   ( 3k x  3k),5000,CPU_Naive,CPU Naive,46,12928,OK,1.00
+PolygonClipping,HIGH,High   ( 3k x  3k),5000,CPU_Sweepline,CPU Sweep-line,8,12928,OK,5.75
+PolygonClipping,HIGH,High   ( 3k x  3k),5000,CPU_Parallel_OMP,CPU Parallel (OMP),10,12928,OK,4.60
+PolygonClipping,HIGH,High   ( 3k x  3k),5000,CPU_Opt_Parallel,CPU Opt.Parallel,1,12928,OK,46.00
+PolygonClipping,HIGH,High   ( 3k x  3k),5000,GPU_BruteForce,GPU Brute-force,10,12928,OK,4.60
+PolygonClipping,HIGH,High   ( 3k x  3k),5000,GPU_Optimized,GPU Optimized,1,12928,OK,46.00
+DistanceCheck,HIGH,High   ( 3k x  3k),10000,CPU_Naive,CPU Naive,343324,77840,OK,1.00
+DistanceCheck,HIGH,High   ( 3k x  3k),10000,CPU_Sweepline,CPU Sweep-line,17532,77840,OK,19.58
+DistanceCheck,HIGH,High   ( 3k x  3k),10000,CPU_Parallel_OMP,CPU Parallel (OMP),106935,77840,OK,3.21
+DistanceCheck,HIGH,High   ( 3k x  3k),10000,CPU_Opt_Parallel,CPU Opt.Parallel,4875,77840,OK,70.43
+DistanceCheck,HIGH,High   ( 3k x  3k),10000,GPU_BruteForce,GPU Brute-force,15963,77840,OK,21.51
+DistanceCheck,HIGH,High   ( 3k x  3k),10000,GPU_Optimized,GPU Optimized,3763,77840,OK,91.24
+PolygonClipping,HIGH,High   ( 3k x  3k),10000,CPU_Naive,CPU Naive,191,51615,OK,1.00
+PolygonClipping,HIGH,High   ( 3k x  3k),10000,CPU_Sweepline,CPU Sweep-line,32,51615,OK,5.97
+PolygonClipping,HIGH,High   ( 3k x  3k),10000,CPU_Parallel_OMP,CPU Parallel (OMP),35,51615,OK,5.46
+PolygonClipping,HIGH,High   ( 3k x  3k),10000,CPU_Opt_Parallel,CPU Opt.Parallel,5,51615,OK,38.20
+PolygonClipping,HIGH,High   ( 3k x  3k),10000,GPU_BruteForce,GPU Brute-force,44,51615,OK,4.34
+PolygonClipping,HIGH,High   ( 3k x  3k),10000,GPU_Optimized,GPU Optimized,4,51615,OK,47.75
+DistanceCheck,HIGH,High   ( 3k x  3k),20000,CPU_Naive,CPU Naive,1364246,309618,OK,1.00
+DistanceCheck,HIGH,High   ( 3k x  3k),20000,CPU_Sweepline,CPU Sweep-line,77160,309618,OK,17.68
+DistanceCheck,HIGH,High   ( 3k x  3k),20000,CPU_Parallel_OMP,CPU Parallel (OMP),428123,309618,OK,3.19
+DistanceCheck,HIGH,High   ( 3k x  3k),20000,CPU_Opt_Parallel,CPU Opt.Parallel,17275,309618,OK,78.97
+DistanceCheck,HIGH,High   ( 3k x  3k),20000,GPU_BruteForce,GPU Brute-force,62011,309618,OK,22.00
+DistanceCheck,HIGH,High   ( 3k x  3k),20000,GPU_Optimized,GPU Optimized,2551,309618,OK,534.79
+PolygonClipping,HIGH,High   ( 3k x  3k),20000,CPU_Naive,CPU Naive,799,205245,OK,1.00
+PolygonClipping,HIGH,High   ( 3k x  3k),20000,CPU_Sweepline,CPU Sweep-line,142,205245,OK,5.63
+PolygonClipping,HIGH,High   ( 3k x  3k),20000,CPU_Parallel_OMP,CPU Parallel (OMP),177,205245,OK,4.51
+PolygonClipping,HIGH,High   ( 3k x  3k),20000,CPU_Opt_Parallel,CPU Opt.Parallel,26,205245,OK,30.73
+PolygonClipping,HIGH,High   ( 3k x  3k),20000,GPU_BruteForce,GPU Brute-force,77,205245,OK,10.38
+PolygonClipping,HIGH,High   ( 3k x  3k),20000,GPU_Optimized,GPU Optimized,15,205245,OK,53.27
