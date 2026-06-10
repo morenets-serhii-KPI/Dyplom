@@ -37,7 +37,6 @@ __device__ bool checkIntersectsDevice(const ClipBoxInternal& a, const ClipBoxInt
     return (a.minX < b.maxX && a.maxX > b.minX && a.minY < b.maxY && a.maxY > b.minY);
 }
 
-// unsigned int лічильник: уникає знакового переповнення при великій кількості результатів
 __global__
 void clippingKernel(const ClipBoxInternal* boxes, int count,
                     ClippedResultInternal* results, unsigned int* resultCount, int maxResults) {
@@ -95,7 +94,6 @@ inline Layout runGpuPolygonClipping(const Layout& layout) {
     }
     int blocks = (int)numBlocks;
 
-    // Динамічний ліміт по вільній VRAM (80%) та INT_MAX
     size_t freeMem = 0, totalMem = 0;
     cudaMemGetInfo(&freeMem, &totalMem);
     long long maxByVram  = (long long)(freeMem * 0.8) / (long long)sizeof(ClippedResultInternal);

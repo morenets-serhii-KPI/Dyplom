@@ -1,9 +1,3 @@
-// main.cu
-// DRC Benchmark — entry point
-// Reads config.json, runs all enabled algorithms
-// for every (density x polygon_count) combination,
-// prints results to console and/or CSV file.
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -38,10 +32,6 @@
 #include "external/json.hpp"
 using json = nlohmann::json;
 
-// =============================================================================
-//  CONFIG
-// =============================================================================
-
 static const char* CONFIG_FILE = "config.json";
 
 struct DensityConfig {
@@ -59,7 +49,7 @@ struct Config {
     bool        saveToFile     = true;
     std::string outputFilename = "results.csv";
     bool        printToConsole = true;
-    std::string format         = "both";    // "csv" | "table" | "both"
+    std::string format         = "both";
 
     unsigned int seed    = 42;
     float polyMin        = 20.f;
@@ -72,7 +62,7 @@ struct Config {
     float minDistance        = 20.f;
     int   runsPerMeasurement = 3;
 
-    AlgoConfig dc[6];   // 0=naive 1=sweep 2=omp 3=opt 4=gpubf 5=gpuopt
+    AlgoConfig dc[6];
     AlgoConfig pc[6];
 
     static const char* DEFAULT_LABELS[6];
@@ -179,10 +169,6 @@ static Config loadConfig(const char* path) {
     return cfg;
 }
 
-// =============================================================================
-//  MEASUREMENT
-// =============================================================================
-
 struct Result {
     long long ms;
     long long value;
@@ -256,11 +242,6 @@ static Result runPC(int idx, const Layout& lay, int runs, long long ref) {
     return r;
 }
 
-// =============================================================================
-//  OUTPUT
-// =============================================================================
-
-// Accumulated output — printed all at once after benchmarks complete
 static std::ostringstream OUTPUT;
 
 static void hline(int w, char c = '-') {
@@ -330,7 +311,6 @@ static void writeCsv(
     }
 }
 
-// Progress bar printed to stderr (separate from results)
 static void showProgress(int done, int total, const char* what) {
     const int BAR = 30;
     int filled = (done * BAR) / total;
@@ -340,10 +320,6 @@ static void showProgress(int done, int total, const char* what) {
     if (done == total) fputc('\n', stderr);
     fflush(stderr);
 }
-
-// =============================================================================
-//  MAIN
-// =============================================================================
 
 int main() {
 
@@ -360,7 +336,6 @@ int main() {
 
     Config cfg = loadConfig(CONFIG_FILE);
 
-    // Active densities
     std::vector<DensityConfig> active;
     for (auto& d : cfg.densities)
         if (d.enabled) active.push_back(d);
@@ -376,7 +351,6 @@ int main() {
     fprintf(stderr, "Running %d combinations (density x polygon_count)...\n\n",
         total);
 
-    // CSV
     std::ofstream csvFile;
     bool doCSV   = cfg.saveToFile    && (cfg.format=="csv"   || cfg.format=="both");
     bool doTable = cfg.printToConsole && (cfg.format=="table" || cfg.format=="both");
@@ -392,7 +366,6 @@ int main() {
         }
     }
 
-    // Build config header for output buffer
     {
         const int W = 64;
         hline(W, '=');
@@ -415,7 +388,6 @@ int main() {
         OUTPUT << "\n";
     }
 
-    // Main benchmark loop
     for (const auto& dens : active) {
         for (int n : cfg.polygonCounts) {
 
@@ -423,14 +395,12 @@ int main() {
             snprintf(what, sizeof(what), "%s n=%-6d", dens.id.c_str(), n);
             showProgress(done, total, what);
 
-            // Generate topology
             Scene sc;
             sc.generateRandomLayout(n, cfg.layers,
                 dens.worldW, dens.worldH,
                 cfg.polyMin, cfg.polyMax, cfg.seed);
             const Layout& lay = sc.layouts[0];
 
-            // --- Distance Check ---
             {
                 Result res[6]{};
                 long long ref     = runNaiveDistanceCheck(lay, cfg.minDistance);
@@ -451,7 +421,6 @@ int main() {
                              cfg.dc, res, naiveMs);
             }
 
-            // --- Polygon Clipping ---
             {
                 Result res[6]{};
                 long long ref     = (long long)runNaivePolygonClipping(lay).polygons.size();
@@ -483,7 +452,6 @@ int main() {
 
     OUTPUT << "\nDone. " << total << " combinations completed.\n";
 
-    // Print all results at once — clear console first
     printf("%s", OUTPUT.str().c_str());
 
     return 0;

@@ -11,7 +11,6 @@ struct OptimizedParallelBox {
     int layer;
 };
 
-// Оптимізована функція обчислення BBox (без std::min/max для швидкості)
 static OptimizedParallelBox getOptimizedParallelBox(const GdsPolygon& poly) {
     OptimizedParallelBox box;
     if (poly.vertices.empty()) return {0, 0, 0, 0, poly.layer};
@@ -29,7 +28,6 @@ static OptimizedParallelBox getOptimizedParallelBox(const GdsPolygon& poly) {
     return box;
 }
 
-// Додано аргумент minDistSq, щоб не множити щоразу
 static inline bool isTooCloseOptimizedParallel(const OptimizedParallelBox& a, const OptimizedParallelBox& b, float minDistSq) {
     float dx = std::max({0.0f, a.minX - b.maxX, b.minX - a.maxX});
     float dy = std::max({0.0f, a.minY - b.maxY, b.minY - a.maxY});
@@ -43,13 +41,11 @@ int runOptimizedParallelDistanceCheck(const Layout& layout, float minDistance) {
 
     std::vector<OptimizedParallelBox> boxes(polygonCount);
 
-    // Паралельне обчислення BBox
     #pragma omp parallel for
     for (int i = 0; i < polygonCount; i++) {
         boxes[i] = getOptimizedParallelBox(layout.polygons[i]);
     }
 
-    // Сортування по X для Sweep-line
     std::sort(boxes.begin(), boxes.end(), [](const auto& a, const auto& b) {
         return a.minX < b.minX;
     });
@@ -57,7 +53,6 @@ int runOptimizedParallelDistanceCheck(const Layout& layout, float minDistance) {
     int violations = 0;
     const float minDistSq = minDistance * minDistance;
 
-    // Паралельний Sweep-line
     #pragma omp parallel for reduction(+:violations) schedule(dynamic)
     for (int i = 0; i < polygonCount; i++) {
         const auto& a = boxes[i];
@@ -65,7 +60,6 @@ int runOptimizedParallelDistanceCheck(const Layout& layout, float minDistance) {
         for (int j = i + 1; j < polygonCount; j++) {
             const auto& b = boxes[j];
 
-            // Головна перевага сортування - ранній вихід
             if (b.minX - a.maxX > minDistance) {
                 break;
             }

@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cstdio>
 
-// Вирівнювання для Memory Coalescing
 struct alignas(16) GpuBox {
     float minX, minY, maxX, maxY;
     int layer;
@@ -30,15 +29,12 @@ __global__ void distanceKernelOptimized(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= count) return;
 
-    // Читаємо свій бокс один раз у регістри
     const GpuBox a = boxes[i];
     int found = 0;
 
-    // Sweep-line цикл
     for (int j = i + 1; j < count; j++) {
         const GpuBox b = boxes[j];
 
-        // Ранній вихід (Sweep Line)
         if (b.minX - a.maxX > minDistance) break;
 
         if (a.layer == b.layer) {
@@ -60,8 +56,6 @@ int runGpuOptimizedDistanceCheck(const Layout& layout, float minDistance) {
     int n = static_cast<int>(layout.polygons.size());
     if (n == 0) return 0;
 
-    // Компактний масив — порожні полігони пропускаємо,
-    // щоб не відправляти сміттєві дані на GPU
     std::vector<GpuBox> hostBoxes;
     hostBoxes.reserve(n);
     for (int i = 0; i < n; i++) {
@@ -78,7 +72,6 @@ int runGpuOptimizedDistanceCheck(const Layout& layout, float minDistance) {
     int count = static_cast<int>(hostBoxes.size());
     if (count == 0) return 0;
 
-    // Запитуємо пристрій для оптимального розміру блоку
     int deviceId;
     cudaGetDevice(&deviceId);
     cudaDeviceProp prop;
@@ -102,7 +95,6 @@ int runGpuOptimizedDistanceCheck(const Layout& layout, float minDistance) {
     cudaMemcpy(d_boxes, hostBoxes.data(), count * sizeof(GpuBox), cudaMemcpyHostToDevice);
     cudaMemset(d_violations, 0, sizeof(unsigned int));
 
-    // Сортування на GPU через Thrust
     thrust::device_ptr<GpuBox> ptr(d_boxes);
     thrust::sort(ptr, ptr + count, GpuBoxComparator());
 
@@ -129,6 +121,5 @@ int runGpuOptimizedDistanceCheck(const Layout& layout, float minDistance) {
     cudaFree(d_boxes);
     cudaFree(d_violations);
 
-    // Обрізаємо до INT_MAX щоб уникнути знакового переповнення при поверненні
     return (rawResult <= (unsigned int)INT_MAX) ? (int)rawResult : INT_MAX;
 }

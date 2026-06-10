@@ -18,7 +18,7 @@ struct ClippingEvent {
 
     bool operator<(const ClippingEvent& other) const {
         if (std::abs(x - other.x) > 1e-7f) return x < other.x;
-        return isStart > other.isStart; // Спочатку обробляємо початок, потім кінець
+        return isStart > other.isStart;
     }
 };
 
@@ -39,7 +39,6 @@ static inline bool boxesOverlap(const SweepClippingBox& a, const SweepClippingBo
     return (a.minX < b.maxX && a.maxX > b.minX && a.minY < b.maxY && a.maxY > b.minY);
 }
 
-// Компаратор для впорядкування активних боксів по Y
 struct YClipComp {
     const std::vector<SweepClippingBox>& boxes;
     YClipComp(const std::vector<SweepClippingBox>& b) : boxes(b) {}

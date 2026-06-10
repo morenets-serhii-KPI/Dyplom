@@ -1,20 +1,3 @@
-"""
-run.py  -  DRC GPU Pipeline
-===========================
-Compiles gpu_opt_drc_methods.cu (if needed), runs it on input GDS,
-produces one GDS file with all results visualized.
-
-Usage:
-  python run.py [--gds FILE] [--dist FLOAT] [--arch sm_XX] [--no-build]
-
-Output:
-  drc_results.gds  —  open in KLayout:
-    layer 100  polygon A (close violation)
-    layer 101  polygon B (close violation)
-    layer 102  gap marker
-    layer 200  overlap area (critical)
-"""
-
 import argparse, json, os, subprocess, sys
 
 HERE    = os.path.dirname(os.path.abspath(__file__))

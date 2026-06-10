@@ -12,7 +12,7 @@ struct ClipBox {
 static inline ClipBox getClipBox(const GdsPolygon& poly) {
     ClipBox box;
     if (poly.vertices.empty()) return {0,0,0,0, poly.layer};
-    
+
     box.minX = box.maxX = poly.vertices[0].x;
     box.minY = box.maxY = poly.vertices[0].y;
     box.layer = poly.layer;
@@ -36,13 +36,11 @@ Layout runNaivePolygonClipping(const Layout& layout) {
     size_t n = layout.polygons.size();
     if (n == 0) return result;
 
-    // 1. Precompute boxes (O(n))
     std::vector<ClipBox> boxes(n);
     for (size_t i = 0; i < n; ++i) {
         boxes[i] = getClipBox(layout.polygons[i]);
     }
 
-    // 2. Наївний пошук перетинів (O(n^2))
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = i + 1; j < n; ++j) {
             if (boxes[i].layer != boxes[j].layer) continue;
@@ -50,10 +48,10 @@ Layout runNaivePolygonClipping(const Layout& layout) {
             if (intersects(boxes[i], boxes[j])) {
                 const auto& a = boxes[i];
                 const auto& b = boxes[j];
-                
+
                 GdsPolygon clipped;
                 clipped.layer = a.layer;
-                
+
                 float ix1 = std::max(a.minX, b.minX);
                 float iy1 = std::max(a.minY, b.minY);
                 float ix2 = std::min(a.maxX, b.maxX);
@@ -62,7 +60,7 @@ Layout runNaivePolygonClipping(const Layout& layout) {
                 clipped.vertices = {
                     {ix1, iy1}, {ix2, iy1}, {ix2, iy2}, {ix1, iy2}
                 };
-                
+
                 result.polygons.push_back(std::move(clipped));
             }
         }

@@ -6,13 +6,11 @@
 #include <algorithm>
 #include <cstdio>
 
-// Структура вирівняна по 16 байт (або 32) для кращого Memory Coalescing
 struct alignas(16) DistanceCheckField {
     float minX, minY, maxX, maxY;
     int layer;
 };
 
-// Device-функція порівняння (без sqrt)
 __device__ inline bool isTooCloseDevice(const DistanceCheckField& a, const DistanceCheckField& b, float minDistSq) {
     float dx = fmaxf(0.0f, fmaxf(a.minX - b.maxX, b.minX - a.maxX));
     float dy = fmaxf(0.0f, fmaxf(a.minY - b.maxY, b.minY - a.maxY));
@@ -20,11 +18,9 @@ __device__ inline bool isTooCloseDevice(const DistanceCheckField& a, const Dista
 }
 
 __global__ void distanceKernel(const DistanceCheckField* __restrict__ boxes, int count, float minDistSq, unsigned int* violations) {
-    // Використовуємо 2D сітку для більш природного відображення на пари (i, j)
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    // Перевіряємо лише верхній трикутник матриці (i < j)
     if (i < count && j < count && i < j) {
         const DistanceCheckField a = boxes[i];
         const DistanceCheckField b = boxes[j];
@@ -39,8 +35,6 @@ int runGpuBruteforceDistanceCheck(const Layout& layout, float minDistance) {
     int n = static_cast<int>(layout.polygons.size());
     if (n == 0) return 0;
 
-    // Компактний масив — порожні полігони пропускаємо,
-    // щоб не відправляти некоректні дані на GPU
     std::vector<DistanceCheckField> hostBoxes;
     hostBoxes.reserve(n);
     for (int i = 0; i < n; ++i) {
@@ -58,13 +52,11 @@ int runGpuBruteforceDistanceCheck(const Layout& layout, float minDistance) {
     int count = static_cast<int>(hostBoxes.size());
     if (count == 0) return 0;
 
-    // Запитуємо пристрій для оптимальних розмірів блоку та гріду
     int deviceId;
     cudaGetDevice(&deviceId);
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, deviceId);
 
-    // Для 2D блоку: blockSide² <= maxThreadsPerBlock
     int blockSide = (prop.maxThreadsPerBlock >= 256) ? 16 : 8;
 
     dim3 threads(blockSide, blockSide);
@@ -73,7 +65,6 @@ int runGpuBruteforceDistanceCheck(const Layout& layout, float minDistance) {
         (count + threads.y - 1) / threads.y
     );
 
-    // Перевіряємо межі гріду пристрою по обох осях
     if (blocks.x > (unsigned)prop.maxGridSize[0] || blocks.y > (unsigned)prop.maxGridSize[1]) {
         fprintf(stderr,
             "[gpu_parallel distance] grid (%u, %u) exceeds device limits (%d, %d)\n",

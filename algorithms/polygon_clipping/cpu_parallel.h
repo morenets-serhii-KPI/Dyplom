@@ -42,7 +42,6 @@ inline Layout runParallelPolygonClipping(const Layout& layout) {
 
     std::vector<BasicParallelClipBox> boxes(n);
 
-    // 1. Паралельне обчислення рамок
     #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         boxes[i] = getBasicParallelClipBox(layout.polygons[i]);
@@ -50,7 +49,6 @@ inline Layout runParallelPolygonClipping(const Layout& layout) {
 
     Layout result;
 
-    // 2. Паралельний перетин (чистий O(n^2))
     #pragma omp parallel
     {
         std::vector<GdsPolygon> localPolys;

@@ -11,7 +11,6 @@ struct ParallelBox {
     int layer;
 };
 
-// Використовуємо inline та прямі порівняння для прискорення обчислення рамок
 static inline ParallelBox getParallelBox(const GdsPolygon& poly) {
     ParallelBox box;
     if (poly.vertices.empty()) return {0.0f, 0.0f, 0.0f, 0.0f, poly.layer};
@@ -29,7 +28,6 @@ static inline ParallelBox getParallelBox(const GdsPolygon& poly) {
     return box;
 }
 
-// Передаємо minDistSq, щоб уникнути зайвих множень у вкладеному циклі
 static inline bool isTooCloseParallel(const ParallelBox& a, const ParallelBox& b, float minDistSq) {
     float dx = std::max({0.0f, a.minX - b.maxX, b.minX - a.maxX});
     float dy = std::max({0.0f, a.minY - b.maxY, b.minY - a.maxY});
@@ -43,7 +41,6 @@ int runParallelDistanceCheck(const Layout& layout, float minDistance) {
 
     std::vector<ParallelBox> boxes(polygonCount);
 
-    // Крок 1: Паралельне обчислення BBox (SIMD-френдлі)
     #pragma omp parallel for
     for (int i = 0; i < polygonCount; i++) {
         boxes[i] = getParallelBox(layout.polygons[i]);
@@ -52,8 +49,6 @@ int runParallelDistanceCheck(const Layout& layout, float minDistance) {
     int violations = 0;
     const float minDistSq = minDistance * minDistance;
 
-    // Крок 2: Паралельний брутфорс O(n²)
-    // schedule(guided) часто працює краще для n² задач, ніж dynamic
     #pragma omp parallel for reduction(+:violations) schedule(guided)
     for (int i = 0; i < polygonCount; i++) {
         const ParallelBox& a = boxes[i];
@@ -61,10 +56,8 @@ int runParallelDistanceCheck(const Layout& layout, float minDistance) {
         for (int j = i + 1; j < polygonCount; j++) {
             const ParallelBox& b = boxes[j];
 
-            // Швидкий фільтр шарів
             if (a.layer != b.layer) continue;
 
-            // Відстань
             if (isTooCloseParallel(a, b, minDistSq)) {
                 violations++;
             }

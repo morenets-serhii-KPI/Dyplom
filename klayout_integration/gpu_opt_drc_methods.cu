@@ -1,14 +1,3 @@
-// gpu_opt_drc_methods.cu
-// Combined GPU engine: distance check + PolyData  clipping in one pass.
-//
-// For each PolyData  pair on the same layer:
-//   dist > min_distance  -> OK, skip
-//   0 < dist < min_distance -> VIOLATION, write to violations.json
-//   dist == 0 (overlap)  -> compute intersection rect, write to overlaps.json
-//
-// Usage:
-//   gpu_opt_drc_methods.exe <topology.json> <min_distance> <output_dir>
-
 #include <cstdio>
 #include <cmath>
 #include <vector>
@@ -24,8 +13,6 @@
 #include "../external/json.hpp"
 using json = nlohmann::json;
 
-// ─── Structures ───────────────────────────────────────────────────────────────
-
 struct alignas(16) GpuBox {
     float minX, minY, maxX, maxY;
     int   layer;
@@ -35,14 +22,11 @@ struct alignas(16) GpuBox {
 struct GpuViolation {
     int   idxA, idxB;
     float dist;
-    // overlap rectangle (valid only if dist == 0)
     float oMinX, oMinY, oMaxX, oMaxY;
-    int   hasOverlap;  // 1 if PolyData s actually overlap
+    int   hasOverlap;
 };
 
 #define MAX_RESULTS 500000
-
-// ─── GPU Kernel ───────────────────────────────────────────────────────────────
 
 struct GpuBoxCmp {
     __host__ __device__
@@ -68,21 +52,18 @@ __global__ void drcKernel(
     for (int j = i + 1; j < count; j++) {
         const GpuBox b = boxes[j];
 
-        // Sweep-line early exit
         if (b.minX - a.maxX > minDist) break;
 
         if (a.layer != b.layer) continue;
 
-        // Distance between bounding boxes
         float dx = fmaxf(0.f, fmaxf(a.minX - b.maxX, b.minX - a.maxX));
         float dy = fmaxf(0.f, fmaxf(a.minY - b.maxY, b.minY - a.maxY));
         float dSq = dx * dx + dy * dy;
 
-        if (dSq >= minDistSq) continue;  // OK — no violation
+        if (dSq >= minDistSq) continue; 
 
         float dist = sqrtf(dSq);
 
-        // Check for actual overlap
         float oMinX = fmaxf(a.minX, b.minX);
         float oMinY = fmaxf(a.minY, b.minY);
         float oMaxX = fminf(a.maxX, b.maxX);
@@ -100,8 +81,6 @@ __global__ void drcKernel(
         }
     }
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 struct PolyData  {
     int layer;
@@ -141,8 +120,6 @@ static GpuBox toBbox(const PolyData & p, int idx) {
     return { x1, y1, x2, y2, p.layer, idx };
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
 int main(int argc, char* argv[]) {
     if (argc < 4) {
         fprintf(stderr,
@@ -156,18 +133,15 @@ int main(int argc, char* argv[]) {
     if (!outDir.empty() && outDir.back() != '\\' && outDir.back() != '/')
         outDir += '/';
 
-    // Load PolyData s
     auto polys = loadJson(topoPath);
     int n = (int)polys.size();
     if (n == 0) { fprintf(stderr, "[gpu_opt_drc_methods] No PolyData s.\n"); return 1; }
 
-    // Build bboxes
     std::vector<GpuBox> hostBoxes;
     hostBoxes.reserve(n);
     for (int i = 0; i < n; i++)
         hostBoxes.push_back(toBbox(polys[i], i));
 
-    // GPU setup
     int deviceId; cudaGetDevice(&deviceId);
     cudaDeviceProp prop; cudaGetDeviceProperties(&prop, deviceId);
     int threads = std::min(prop.maxThreadsPerBlock, 256);
@@ -185,15 +159,12 @@ int main(int argc, char* argv[]) {
                cudaMemcpyHostToDevice);
     cudaMemset(d_cnt, 0, sizeof(int));
 
-    // Sort on GPU
     thrust::device_ptr<GpuBox> ptr(d_boxes);
     thrust::sort(ptr, ptr + n, GpuBoxCmp());
 
-    // Copy sorted order back (need idx mapping)
     cudaMemcpy(hostBoxes.data(), d_boxes, n * sizeof(GpuBox),
                cudaMemcpyDeviceToHost);
 
-    // Run kernel
     auto t0 = std::chrono::high_resolution_clock::now();
 
     drcKernel<<<blocks, threads>>>(
@@ -225,7 +196,6 @@ int main(int argc, char* argv[]) {
 
     cudaFree(d_boxes); cudaFree(d_results); cudaFree(d_cnt);
 
-    // Split into violations and overlaps
     json violations = json::array();
     json overlaps   = json::array();
 
@@ -259,14 +229,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Write output files
     std::string violPath = outDir + "violations.json";
     std::string overPath = outDir + "overlaps.json";
 
     std::ofstream(violPath) << violations.dump(2);
     std::ofstream(overPath) << overlaps.dump(2);
 
-    // Write report
     std::string repPath = outDir + "report.txt";
     std::ofstream rf(repPath);
     rf << "DRC Report\n";

@@ -23,7 +23,6 @@ struct BoxComparator {
     }
 };
 
-// Прохід 1: рахуємо кількість перетинів для кожного потоку
 __global__
 void countIntersectionsKernel(const GpuClipBox* boxes, int count, int* perThreadCount) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -42,7 +41,6 @@ void countIntersectionsKernel(const GpuClipBox* boxes, int count, int* perThread
     perThreadCount[i] = cnt;
 }
 
-// Прохід 2: записуємо результати за заздалегідь відомими зміщеннями (без atomicAdd)
 __global__
 void writeIntersectionsKernel(const GpuClipBox* boxes, int count,
                                const int* offsets, GpuClipBox* results, int maxResults) {
@@ -124,11 +122,9 @@ inline Layout runGpuOptimizedPolygonClipping(const Layout& layout) {
 
     cudaMemcpy(d_boxes, hostBoxes.data(), count * sizeof(GpuClipBox), cudaMemcpyHostToDevice);
 
-    // Сортування по minX для sweep-line
     thrust::device_ptr<GpuClipBox> ptr(d_boxes);
     thrust::sort(ptr, ptr + count, BoxComparator());
 
-    // --- Прохід 1: рахуємо перетини ---
     countIntersectionsKernel<<<blocks, threads>>>(d_boxes, count, d_perThreadCount);
     if (!gpuClipCheck(cudaGetLastError(),       "countKernel launch") ||
         !gpuClipCheck(cudaDeviceSynchronize(),  "countKernel sync")) {
@@ -136,20 +132,17 @@ inline Layout runGpuOptimizedPolygonClipping(const Layout& layout) {
         return Layout();
     }
 
-    // Prefix sum (exclusive scan) → зміщення для кожного потоку
     {
         thrust::device_ptr<int> pCount(d_perThreadCount);
         thrust::device_ptr<int> pOffsets(d_offsets);
         thrust::exclusive_scan(pCount, pCount + count, pOffsets);
     }
 
-    // Точна загальна кількість результатів
     int lastCount = 0, lastOffset = 0;
     cudaMemcpy(&lastCount,  d_perThreadCount + count - 1, sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(&lastOffset, d_offsets        + count - 1, sizeof(int), cudaMemcpyDeviceToHost);
     long long totalResults = (long long)lastOffset + lastCount;
 
-    // Ліміт по вільній VRAM (80%) та по діапазону int (для індексів)
     size_t freeMem = 0, totalMem = 0;
     cudaMemGetInfo(&freeMem, &totalMem);
     long long maxByVram = (long long)(freeMem * 0.8) / (long long)sizeof(GpuClipBox);
@@ -170,7 +163,6 @@ inline Layout runGpuOptimizedPolygonClipping(const Layout& layout) {
         return Layout();
     }
 
-    // --- Прохід 2: записуємо результати без atomicAdd ---
     writeIntersectionsKernel<<<blocks, threads>>>(d_boxes, count, d_offsets, d_results, maxResults);
     if (!gpuClipCheck(cudaGetLastError(),      "writeKernel launch") ||
         !gpuClipCheck(cudaDeviceSynchronize(), "writeKernel sync")) {

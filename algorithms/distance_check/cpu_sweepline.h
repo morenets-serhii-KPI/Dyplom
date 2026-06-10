@@ -17,7 +17,7 @@ struct SweepEvent {
 
     bool operator<(const SweepEvent& other) const {
         if (std::abs(x - other.x) > 1e-7f) return x < other.x;
-        return isStart > other.isStart; // Start перед End
+        return isStart > other.isStart;
     }
 };
 
@@ -50,8 +50,6 @@ int runSweepLineDistanceCheck(const Layout& layout, float minDistance) {
 
     std::sort(events.begin(), events.end());
 
-    // Замість std::set використовуємо vector для activeSet (менше алокацій)
-    // Для дипломної роботи: на невеликих "активних наборах" vector швидший за дерево
     std::vector<size_t> activeIndices;
     int violations = 0;
     const float minDistSq = minDistance * minDistance;
@@ -63,11 +61,9 @@ int runSweepLineDistanceCheck(const Layout& layout, float minDistance) {
         if (ev.isStart) {
             for (size_t otherIdx : activeIndices) {
                 const auto& otherBox = boxes[otherIdx];
-                
+
                 if (curBox.layer != otherBox.layer) continue;
 
-                // Оскільки ми вже відфільтровані по X завдяки sweep-line,
-                // додаємо швидку перевірку по Y перед розрахунком відстані
                 float dy = std::max({0.0f, curBox.minY - otherBox.maxY, otherBox.minY - curBox.maxY});
                 if (dy >= minDistance) continue;
 
@@ -78,7 +74,6 @@ int runSweepLineDistanceCheck(const Layout& layout, float minDistance) {
             }
             activeIndices.push_back(curIdx);
         } else {
-            // Видалення з вектора (O(k), де k - розмір активного набору)
             auto it = std::find(activeIndices.begin(), activeIndices.end(), curIdx);
             if (it != activeIndices.end()) {
                 *it = activeIndices.back();
